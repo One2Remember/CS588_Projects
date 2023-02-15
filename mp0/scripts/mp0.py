@@ -17,6 +17,7 @@ import rospy
 
 # GEM PACMod Headers
 from std_msgs.msg import Header
+from pacmod_msgs.msg import PacmodCmd
 
 #left-left-left-right-right-right-left-left-left
 
