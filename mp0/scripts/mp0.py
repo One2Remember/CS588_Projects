@@ -21,9 +21,9 @@ from std_msgs.msg import Header
 #left-left-left-right-right-right-left-left-left
 
 #DOT REST
-DOT  = rospy.Duration.from_sec(0.5)
+DOT  = rospy.Duration.from_sec(0.25)
 #DASH REST
-DASH = rospy.Duration.from_sec(1.0)
+DASH = rospy.Duration.from_sec(0.5)
 #OFF REST
 OFF  = rospy.Duration.from_sec(0.25)
 #VERY LONG REST
@@ -39,7 +39,7 @@ class Node():
 		self.signal_list = [2,1,2,1,2,1,0,1,0,1,0,1,2,1,2,1,2,1]
         self.sleep_rates = [DOT,OFF,DOT,OFF,DOT,OFF,DASH,OFF,DASH,OFF,DASH,OFF,DOT,OFF,DOT,OFF,DOT,VLR]
 		self.signal_list_pos = 0
-		self.headlight_pub = rospy.Publisher('/pacmod/as_rx/headlight_cmd', PacmodCmd, queue_size = 1)
+		self.headlight_pub = rospy.Publisher('/pacmod/as_rx/turn_cmd', PacmodCmd, queue_size = 1)
 
 
 	def run(self):
@@ -60,9 +60,6 @@ class Node():
 
         # Create PacmodCmd message and populate with data
         msg = PacmodCmd()
-        msg.enable = True
-        msg.clear  = False
-        msg.ignore = False
         msg.ui16_cmd = headlight_cmd
 
         # Publish message to headlight_cmd topic publisher
