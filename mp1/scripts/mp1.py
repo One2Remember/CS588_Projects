@@ -63,24 +63,24 @@ class BreakForPedestrian():
 
     def run(self):
         while not rospy.is_shutdown():
-            #todo: get image from stream
-            # image = self.get_image_from_stream()
-            #todo: determine if human is detected
-            # humanDetected = self.detect_human(image)
         
             if self.human_detected:
+                # stop accelerating
                 self.accel_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
                 self.accel_pub.publish(self.accel_cmd)
 
+                # engage brakes
                 self.brake_cmd.f64_cmd = BREAK_MESSAGE_VALUE
                 self.brake_pub.publish(self.brake_cmd)
                 
                 print("Braking")
 
             else:
+                # stop breaking
                 self.brake_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
                 self.brake_pub.publish(self.brake_cmd)
 
+                # engage accelerator
                 self.accel_cmd.f64_cmd = ACCELERATE_MESSAGE_VALUE
                 self.accel_pub.publish(self.accel_cmd)
                 
@@ -88,24 +88,26 @@ class BreakForPedestrian():
                 
             self.rate.sleep()
             rospy.spin()
-
-
-    # def get_image_from_stream(self):
-    #     return None
     
     
     def detect_human(self, image):
+        # convert image for model
         bridge = CvBridge()
         img = bridge.imgmsg_to_cv2(image, "bgr8")
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+        # get model results
         results = self.model(img)
         results.print()
         results.render()
         
+        # convert to pandas df
         box_df = results.pandas().xyxy[0]
+        # get result with humans detected
         people_df = box_df.loc[box_df['class'] == HUMAN_CLASS]
+        # print # of people detected
         print(people_df.size)
+        # return true if at least 1 person detected
         self.human_detected = people_df.size > 0
     
 
