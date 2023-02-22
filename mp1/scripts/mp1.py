@@ -91,17 +91,23 @@ class BreakForPedestrian():
     
     
     def detect_human(self, image):
+        # convert image for model
         bridge = CvBridge()
         img = bridge.imgmsg_to_cv2(image, "bgr8")
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+        # get model results
         results = self.model(img)
         results.print()
         results.render()
         
+        # convert to pandas df
         box_df = results.pandas().xyxy[0]
+        # get result with humans detected
         people_df = box_df.loc[box_df['class'] == HUMAN_CLASS]
+        # print # of people detected
         print(people_df.size)
+        # return true if at least 1 person detected
         self.human_detected = people_df.size > 0
     
 
