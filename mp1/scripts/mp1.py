@@ -63,24 +63,24 @@ class BreakForPedestrian():
 
     def run(self):
         while not rospy.is_shutdown():
-            #todo: get image from stream
-            # image = self.get_image_from_stream()
-            #todo: determine if human is detected
-            # humanDetected = self.detect_human(image)
         
             if self.human_detected:
+                # stop accelerating
                 self.accel_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
                 self.accel_pub.publish(self.accel_cmd)
 
+                # engage brakes
                 self.brake_cmd.f64_cmd = BREAK_MESSAGE_VALUE
                 self.brake_pub.publish(self.brake_cmd)
                 
                 print("Braking")
 
             else:
+                # stop breaking
                 self.brake_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
                 self.brake_pub.publish(self.brake_cmd)
 
+                # engage accelerator
                 self.accel_cmd.f64_cmd = ACCELERATE_MESSAGE_VALUE
                 self.accel_pub.publish(self.accel_cmd)
                 
@@ -88,10 +88,6 @@ class BreakForPedestrian():
                 
             self.rate.sleep()
             rospy.spin()
-
-
-    # def get_image_from_stream(self):
-    #     return None
     
     
     def detect_human(self, image):
