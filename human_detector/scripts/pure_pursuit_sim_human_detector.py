@@ -63,7 +63,7 @@ class PurePursuit(object):
 
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw", Image, self.detect_human)
 
-        self.image_pub = rospy.Publisher("/bounding_img", Image, queue_size=15)
+        # self.image_pub = rospy.Publisher("/bounding_img", Image, queue_size=15)
 
         self.ackermann_pub = rospy.Publisher('/ackermann_cmd', AckermannDrive, queue_size=1)
 
@@ -172,7 +172,7 @@ class PurePursuit(object):
                 self.ackermann_pub.publish(self.ackermann_msg)
 
             self.rate.sleep()
-            rospy.spin()
+            # rospy.spin()
 
     def detect_human(self, image):
         bridge = CvBridge()
