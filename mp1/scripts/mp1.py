@@ -11,9 +11,16 @@ from __future__ import print_function
 import math
 import os
 import time
+import torch
+import cv2
+import numpy as np
+from PIL import Image as im
+import time
 
 # ROS Headers
 import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
 
 # GEM PACMod Headers
 from std_msgs.msg import Header
@@ -22,11 +29,14 @@ from pacmod_msgs.msg import PositionWithSpeed, PacmodCmd
 BREAK_MESSAGE_VALUE = 0.5
 ACCELERATE_MESSAGE_VALUE = 0.5
 DISENGAGE_MESSAGE_VALUE = 0.0
+HUMAN_CLASS = 0
+CAMERA_TOPIC = '/'
 
 class BreakForPedestrian():
 
     def __init__(self):
         self.rate = rospy.Rate(10)
+        self.human_detected = False
         
         # Accelerate message init
         self.accel_pub = rospy.Publisher('/pacmod/as_rx/accel_cmd', PacmodCmd, queue_size=1)
@@ -44,20 +54,26 @@ class BreakForPedestrian():
         self.brake_cmd.ignore = False
         self.brake_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
 
+        # Load the YOLO model
+        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True, device=0)
+
+        self.image_sub = rospy.Subscriber(CAMERA_TOPIC, Image, self.detect_human)
+
+
 
     def run(self):
         while not rospy.is_shutdown():
             #todo: get image from stream
-            image = self.get_image_from_stream()
+            # image = self.get_image_from_stream()
             #todo: determine if human is detected
-            humanDetected = self.detect_human(image)
+            # humanDetected = self.detect_human(image)
         
-            if humanDetected:
-                self.brake_cmd.f64_cmd = BREAK_MESSAGE_VALUE
-                self.brake_pub.publish(self.brake_cmd)
-                
+            if self.human_detected:
                 self.accel_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
                 self.accel_pub.publish(self.accel_cmd)
+
+                self.brake_cmd.f64_cmd = BREAK_MESSAGE_VALUE
+                self.brake_pub.publish(self.brake_cmd)
                 
                 print("Braking")
 
@@ -71,14 +87,27 @@ class BreakForPedestrian():
                 print("Accelerating")
                 
             self.rate.sleep()
+            rospy.spin()
 
 
-    def get_image_from_stream():
-        return None
+    # def get_image_from_stream(self):
+    #     return None
     
     
-    def detect_human(image):
-        return True
+    def detect_human(self, image):
+        bridge = CvBridge()
+        img = bridge.imgmsg_to_cv2(image, "bgr8")
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        results = self.model(img)
+        results.print()
+        results.render()
+        
+        box_df = results.pandas().xyxy[0]
+        people_df = box_df.loc[box_df['class'] == HUMAN_CLASS]
+        print(people_df.size)
+        self.human_detected = people_df.size > 0
+    
 
 
 if __name__ == '__main__':
