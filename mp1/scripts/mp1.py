@@ -26,7 +26,7 @@ from cv_bridge import CvBridge
 from std_msgs.msg import Header
 from pacmod_msgs.msg import PositionWithSpeed, PacmodCmd
 
-BREAK_MESSAGE_VALUE = 0.5
+BRAKE_MESSAGE_VALUE = 0.5
 ACCELERATE_MESSAGE_VALUE = 0.5
 DISENGAGE_MESSAGE_VALUE = 0.0
 HUMAN_CLASS = 0
@@ -70,7 +70,7 @@ class BreakForPedestrian():
                 self.accel_pub.publish(self.accel_cmd)
 
                 # engage brakes
-                self.brake_cmd.f64_cmd = BREAK_MESSAGE_VALUE
+                self.brake_cmd.f64_cmd = BRAKE_MESSAGE_VALUE
                 self.brake_pub.publish(self.brake_cmd)
                 
                 print("Braking")
