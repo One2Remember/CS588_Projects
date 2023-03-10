@@ -61,28 +61,27 @@ class BreakForPedestrian():
 
     def run(self):
         while not rospy.is_shutdown():
+            if self.human_detected:
+                # stop accelerating
+                self.accel_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
+                self.accel_pub.publish(self.accel_cmd)
 
-        if self.human_detected:
-        # stop accelerating
-        self.accel_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
-        self.accel_pub.publish(self.accel_cmd)
+                # engage brakes
+                self.brake_cmd.f64_cmd = BRAKE_MESSAGE_VALUE
+                self.brake_pub.publish(self.brake_cmd)
+                print("Braking")
+            else:
+                # stop breaking
+                self.brake_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
+                self.brake_pub.publish(self.brake_cmd)
 
-        # engage brakes
-        self.brake_cmd.f64_cmd = BRAKE_MESSAGE_VALUE
-        self.brake_pub.publish(self.brake_cmd)
-        print("Braking")
-
-        else:
-        # stop breaking
-        self.brake_cmd.f64_cmd = DISENGAGE_MESSAGE_VALUE
-        self.brake_pub.publish(self.brake_cmd)
-
-        # engage accelerator
-        self.accel_cmd.f64_cmd = ACCELERATE_MESSAGE_VALUE
-        print(self.accel_cmd)
-        self.accel_pub.publish(self.accel_cmd)
-        print("Accelerating")
-        self.rate.sleep()
+                # engage accelerator
+                self.accel_cmd.f64_cmd = ACCELERATE_MESSAGE_VALUE
+                # print(self.accel_cmd)
+                self.accel_pub.publish(self.accel_cmd)
+                print("Accelerating")
+                
+            self.rate.sleep()
 
 
     def detect_human(self, image):
@@ -104,7 +103,7 @@ class BreakForPedestrian():
         box_df = results.pandas().xyxy[0]
         # get result with humans detected
         people_df = box_df.loc[box_df['class'] == HUMAN_CLASS]
-        # print # of people detected
+        # print num of people detected
         print(people_df.size)
         # return true if at least 1 person detected
         self.human_detected = people_df.size > 0
